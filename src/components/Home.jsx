@@ -1,49 +1,53 @@
+import CupIcon from './CupIcon.jsx'
+import BaseballIcon from './BaseballIcon.jsx'
+
 export default function Home({ onSelectMode }) {
   return (
     <div className="screen home-screen">
-      <div className="home-hero">
-        <div className="home-icon">🏆</div>
-        <h1 className="home-title">Pass the Cup</h1>
-        <p className="home-tagline">Baseball Drinking Game</p>
-      </div>
+      <div className="home-card card">
+        <div className="cup-icon-wrap">
+          <CupIcon size={96} />
+        </div>
 
-      <div className="home-modes">
-        <button
-          className="mode-card btn"
-          onClick={() => onSelectMode('manual')}
-        >
-          <div className="mode-icon">⚾</div>
-          <div className="mode-content">
-            <div className="mode-name">Manual Mode</div>
-            <div className="mode-desc">Enter at-bat outcomes yourself as you watch</div>
-          </div>
-          <div className="mode-arrow">›</div>
-        </button>
+        <h1 className="app-title">Pass the Cup</h1>
+        <p className="app-subtitle">Baseball Drinking Game</p>
 
-        <button
-          className="mode-card btn"
-          onClick={() => onSelectMode('live')}
-        >
-          <div className="mode-icon">📡</div>
-          <div className="mode-content">
-            <div className="mode-name">
-              Live Mode
-              <span className="plus-badge">LIVE</span>
+        <div className="home-modes">
+          <button
+            className="mode-btn btn"
+            onClick={() => onSelectMode('manual')}
+          >
+            <div className="mode-btn-icon green">
+              <BaseballIcon size={28} />
             </div>
-            <div className="mode-desc">Auto-tracks a real MLB game in real time</div>
-          </div>
-          <div className="mode-arrow">›</div>
-        </button>
-      </div>
+            <div className="mode-content">
+              <div className="mode-name">Manual Mode</div>
+              <div className="mode-desc">Enter at-bats yourself</div>
+            </div>
+            <div className="mode-arrow">›</div>
+          </button>
 
-      <div className="home-rules">
-        <h3 className="rules-title">Quick Rules</h3>
-        <ul className="rules-list">
-          <li><span className="rule-hit">Hits</span> — take from the pot (1B=$1, 2B=$2, 3B=$3, HR=all)</li>
-          <li><span className="rule-out">Outs</span> — add to the pot (Out=$1, K=$2, DP=$2)</li>
-          <li><span className="rule-neutral">Walk / HBP</span> — cup passes, nothing changes</li>
-          <li>Home Run triggers a re-ante ($1 each)</li>
-        </ul>
+          <button
+            className="mode-btn btn"
+            onClick={() => onSelectMode('live')}
+          >
+            <div className="mode-btn-icon">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <circle cx="14" cy="14" r="5" fill="#3b82f6" />
+                <circle cx="14" cy="14" r="9" stroke="#3b82f6" strokeWidth="1.5" fill="none" opacity="0.5" />
+                <circle cx="14" cy="14" r="13" stroke="#3b82f6" strokeWidth="1" fill="none" opacity="0.25" />
+              </svg>
+            </div>
+            <div className="mode-content">
+              <div className="mode-name">
+                Live Mode
+                <span className="plus-badge">PLUS</span>
+              </div>
+              <div className="mode-desc">Connect to a live MLB game</div>
+            </div>
+            <div className="mode-arrow">›</div>
+          </button>
+        </div>
       </div>
     </div>
   )

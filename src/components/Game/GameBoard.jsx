@@ -1,5 +1,11 @@
 import AtBatControls from './AtBatControls.jsx'
 import EventLog from './EventLog.jsx'
+import CupIcon from '../CupIcon.jsx'
+
+const PLAYER_COLORS = [
+  '#3b82f6', '#f97316', '#22c55e', '#7c3aed',
+  '#ec4899', '#14b8a6', '#f59e0b', '#6366f1', '#ef4444',
+]
 
 export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liveStatus }) {
   const { players, pot, currentPlayerIndex, events } = gameState
@@ -45,26 +51,36 @@ export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liv
       )}
 
       {/* Pot display */}
-      <div className="pot-display">
-        <div className="pot-label">POT</div>
+      <div className="pot-card">
+        <CupIcon size={56} />
+        <div className="pot-label">THE CUP</div>
         <div className="pot-amount">${pot}</div>
-        <div className="pot-icon">🏆</div>
       </div>
 
       {/* Current player card */}
       <div className="player-card active">
-        <div className="player-card-label">UP NEXT</div>
-        <div className="player-card-name">{currentPlayer.name}</div>
-        <div className="player-card-balance">
-          Balance:{' '}
-          <span className={currentPlayer.balance >= 0 ? 'positive' : 'negative'}>
-            {currentPlayer.balance >= 0 ? '+' : ''}${currentPlayer.balance}
+        <div className="player-card-left">
+          <span
+            className="player-number"
+            style={{ background: PLAYER_COLORS[currentPlayerIndex % PLAYER_COLORS.length] }}
+          >
+            {currentPlayerIndex + 1}
           </span>
+          <div className="player-card-info">
+            <div className="player-card-label">NOW UP</div>
+            <div className="player-card-name">{currentPlayer.name}</div>
+            <div className="player-card-balance">
+              Balance:{' '}
+              <span className={currentPlayer.balance >= 0 ? 'positive' : 'negative'}>
+                {currentPlayer.balance >= 0 ? '+' : ''}${currentPlayer.balance}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Scoreboard */}
-      <div className="scoreboard card">
+      <div className="scoreboard">
         <div className="scoreboard-title">Scoreboard</div>
         <div className="scoreboard-list">
           {players.map((player, idx) => (
@@ -72,7 +88,16 @@ export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liv
               key={player.id}
               className={`scoreboard-row${idx === currentPlayerIndex ? ' current' : ''}`}
             >
-              <span className="sb-order">{idx + 1}</span>
+              <span
+                className="sb-order"
+                style={
+                  idx === currentPlayerIndex
+                    ? { background: PLAYER_COLORS[idx % PLAYER_COLORS.length], color: '#ffffff' }
+                    : {}
+                }
+              >
+                {idx + 1}
+              </span>
               <span className="sb-name">{player.name}</span>
               <span className={`sb-balance ${player.balance >= 0 ? 'positive' : 'negative'}`}>
                 {player.balance >= 0 ? '+' : ''}${player.balance}
@@ -86,7 +111,7 @@ export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liv
       {!isLive ? (
         <AtBatControls onAtBat={onAtBat} disabled={false} />
       ) : (
-        <div className="live-waiting card">
+        <div className="live-waiting">
           <span className="live-dot" />
           <span>Waiting for next at-bat…</span>
         </div>

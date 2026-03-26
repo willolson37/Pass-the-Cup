@@ -25,7 +25,7 @@ export default function EventLog({ events, maxVisible = 20 }) {
 
   if (!events || events.length === 0) {
     return (
-      <div className="event-log card">
+      <div className="event-log">
         <div className="event-log-title">Event Log</div>
         <div className="event-log-empty">No at-bats yet</div>
       </div>
@@ -37,7 +37,7 @@ export default function EventLog({ events, maxVisible = 20 }) {
   const hasMore = events.length > limit
 
   return (
-    <div className="event-log card">
+    <div className="event-log">
       <div className="event-log-title">Event Log</div>
       <div className="event-log-list">
         {visible.map((evt) => (
@@ -50,7 +50,7 @@ export default function EventLog({ events, maxVisible = 20 }) {
             {evt.mlbContext && (
               <div className="event-mlb-context">
                 {evt.mlbContext.batterName && (
-                  <span className="mlb-batter">⚾ {evt.mlbContext.batterName}</span>
+                  <span className="mlb-batter">{evt.mlbContext.batterName}</span>
                 )}
                 {evt.mlbContext.inning && (
                   <span className="mlb-inning">

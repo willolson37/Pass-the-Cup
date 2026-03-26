@@ -1,10 +1,10 @@
 import { OUTCOMES } from '../../utils/gameLogic.js'
 
 const HIT_BUTTONS = [
-  { outcome: OUTCOMES.SINGLE,   label: 'Single',    sub: '+$1',  type: 'hit' },
-  { outcome: OUTCOMES.DOUBLE,   label: 'Double',    sub: '+$2',  type: 'hit' },
-  { outcome: OUTCOMES.TRIPLE,   label: 'Triple',    sub: '+$3',  type: 'hit' },
-  { outcome: OUTCOMES.HOME_RUN, label: 'Home Run',  sub: '💰',   type: 'hit' },
+  { outcome: OUTCOMES.SINGLE,   label: 'Single',    sub: '+$1', type: 'hit' },
+  { outcome: OUTCOMES.DOUBLE,   label: 'Double',    sub: '+$2', type: 'hit' },
+  { outcome: OUTCOMES.TRIPLE,   label: 'Triple',    sub: '+$3', type: 'hit' },
+  { outcome: OUTCOMES.HOME_RUN, label: 'Home Run',  sub: 'All', type: 'hit' },
 ]
 
 const OUT_BUTTONS = [
@@ -15,8 +15,8 @@ const OUT_BUTTONS = [
 ]
 
 const NEUTRAL_BUTTONS = [
-  { outcome: OUTCOMES.WALK, label: 'Walk',        sub: '→', type: 'neutral' },
-  { outcome: OUTCOMES.HBP,  label: 'Hit By Pitch', sub: '→', type: 'neutral' },
+  { outcome: OUTCOMES.WALK, label: 'Walk',         sub: 'passes', type: 'neutral' },
+  { outcome: OUTCOMES.HBP,  label: 'Hit By Pitch', sub: 'passes', type: 'neutral' },
 ]
 
 export default function AtBatControls({ onAtBat, disabled }) {
@@ -26,7 +26,7 @@ export default function AtBatControls({ onAtBat, disabled }) {
   }
 
   return (
-    <div className="atbat-controls card">
+    <div className="atbat-controls">
       <div className="atbat-title">Record At-Bat</div>
 
       <div className="outcome-group">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchTodaysGames } from '../../utils/mlbApi.js'
+import BaseballIcon from '../BaseballIcon.jsx'
 
 function GameCard({ game, onSelect }) {
   const isSelectable = game.status === 'Live' || game.status === 'Preview'
@@ -43,7 +44,7 @@ function GameCard({ game, onSelect }) {
 function TeamSelectorOverlay({ game, onConfirm, onCancel }) {
   return (
     <div className="overlay-backdrop" onClick={onCancel}>
-      <div className="team-selector card" onClick={(e) => e.stopPropagation()}>
+      <div className="team-selector" onClick={(e) => e.stopPropagation()}>
         <h3 className="team-selector-title">Track which team's at-bats?</h3>
         <p className="team-selector-sub">
           {game.awayTeam} @ {game.homeTeam}
@@ -117,16 +118,24 @@ export default function GameSelector({ playerNames, onSelectGame, onBack }) {
   return (
     <div className="screen selector-screen">
       <div className="screen-header">
-        <button className="btn btn-outline btn-sm" onClick={onBack}>
+        <button className="back-link" onClick={onBack}>
           ← Back
         </button>
-        <h2 className="screen-title">Select Game</h2>
-        <div style={{ width: 60 }} />
+        <div />
       </div>
 
-      <p className="setup-subtitle">
-        {playerNames.length} players ready — pick a game to track
-      </p>
+      {/* Header card */}
+      <div className="card" style={{ textAlign: 'center', padding: '24px 20px 20px' }}>
+        <div className="cup-icon-wrap">
+          <BaseballIcon size={56} />
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginBottom: 4 }}>
+          Select a Game
+        </h2>
+        <p style={{ fontSize: 13, color: '#6b7280' }}>
+          {playerNames.length} players ready — pick a game to track
+        </p>
+      </div>
 
       {loading && (
         <div className="loading-container">
@@ -136,7 +145,7 @@ export default function GameSelector({ playerNames, onSelectGame, onBack }) {
       )}
 
       {error && (
-        <div className="error-card card">
+        <div className="error-card">
           <p className="error-text">Failed to load games: {error}</p>
           <button
             className="btn btn-primary"
@@ -185,7 +194,7 @@ export default function GameSelector({ playerNames, onSelectGame, onBack }) {
           )}
 
           {games.length === 0 && (
-            <div className="empty-state card">
+            <div className="empty-state">
               <p>No games scheduled today.</p>
               <p className="muted">Check back when the season is underway.</p>
             </div>

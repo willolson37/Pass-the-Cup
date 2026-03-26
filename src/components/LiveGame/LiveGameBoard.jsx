@@ -20,7 +20,6 @@ export default function LiveGameBoard({ gameState, liveConfig, onAtBat, onReset,
     onNewPlay: handleNewPlay,
     enabled: true,
     intervalMs: 15000,
-    // retryKey is used to re-mount the hook on retry
     _retryKey: retryKey,
   })
 
@@ -38,12 +37,12 @@ export default function LiveGameBoard({ gameState, liveConfig, onAtBat, onReset,
           </span>
         ) : error ? (
           <span className="live-banner-text live-banner-error">
-            ⚠ Connection error — retrying…
+            Connection error — retrying…
           </span>
         ) : (
           <span className="live-banner-text">
             <span className="live-dot" />
-            <strong> LIVE</strong>
+            {' '}<strong>LIVE</strong>
             {liveConfig.awayTeamAbbr && liveConfig.homeTeamAbbr && (
               <> — {liveConfig.awayTeamAbbr} @ {liveConfig.homeTeamAbbr}</>
             )}
@@ -59,7 +58,7 @@ export default function LiveGameBoard({ gameState, liveConfig, onAtBat, onReset,
 
       {/* Error state with retry */}
       {error && (
-        <div className="error-card card" style={{ margin: '8px 16px' }}>
+        <div className="error-card" style={{ margin: '8px 16px' }}>
           <p className="error-text">{error}</p>
           <button
             className="btn btn-primary"
@@ -87,9 +86,9 @@ export default function LiveGameBoard({ gameState, liveConfig, onAtBat, onReset,
       />
 
       {/* Manual Override section */}
-      <div className="manual-override card" style={{ margin: '0 0 16px' }}>
+      <div className="manual-override">
         <button
-          className="btn btn-outline manual-override-toggle"
+          className="manual-override-toggle"
           onClick={() => setShowManual((v) => !v)}
         >
           {showManual ? '▲ Hide' : '▼ Show'} Manual Override
