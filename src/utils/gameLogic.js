@@ -152,6 +152,35 @@ export function processAtBat(state, outcome, mlbContext = null) {
   }
 }
 
+// Returns the minimal list of transactions to settle all debts.
+// Uses a greedy algorithm: largest debtor pays largest creditor first.
+export function calculateSettlement(players) {
+  // Work in integer cents to avoid floating-point drift
+  const bal = players.map(p => ({ name: p.name, cents: Math.round(p.balance * 100) }))
+  const transactions = []
+
+  for (let guard = 0; guard < 100; guard++) {
+    const creditors = bal.filter(b => b.cents >  1).sort((a, b) => b.cents - a.cents)
+    const debtors   = bal.filter(b => b.cents < -1).sort((a, b) => a.cents - b.cents)
+    if (!creditors.length || !debtors.length) break
+
+    const creditor = creditors[0]
+    const debtor   = debtors[0]
+    const amount   = Math.min(creditor.cents, -debtor.cents)
+
+    transactions.push({
+      from:   debtor.name,
+      to:     creditor.name,
+      amount: amount / 100,   // back to dollars
+    })
+
+    creditor.cents -= amount
+    debtor.cents   += amount
+  }
+
+  return transactions
+}
+
 export function classifyMLBPlay(play) {
   if (!play) return null
   if (play.result?.type !== 'atBat') return null

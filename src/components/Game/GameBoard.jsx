@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import AtBatControls from './AtBatControls.jsx'
 import EventLog from './EventLog.jsx'
 import CupIcon from '../CupIcon.jsx'
+import SettlementScreen from './SettlementScreen.jsx'
 
 const PLAYER_COLORS = [
   '#3b82f6', '#f97316', '#22c55e', '#7c3aed',
@@ -8,16 +10,27 @@ const PLAYER_COLORS = [
 ]
 
 export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liveStatus }) {
+  const [showSettlement, setShowSettlement] = useState(false)
   const { players, pot, currentPlayerIndex, events } = gameState
   const currentPlayer = players[currentPlayerIndex]
   const isLive = !!liveConfig
+
+  if (showSettlement) {
+    return (
+      <SettlementScreen
+        gameState={gameState}
+        onNewGame={onReset}
+        onResume={() => setShowSettlement(false)}
+      />
+    )
+  }
 
   return (
     <div className="screen game-screen">
       {/* Header */}
       <div className="game-header">
         <h1 className="game-title">Pass the Cup</h1>
-        <button className="btn btn-danger btn-sm" onClick={onReset}>
+        <button className="btn btn-danger btn-sm" onClick={() => setShowSettlement(true)}>
           End Game
         </button>
       </div>
