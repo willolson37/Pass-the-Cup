@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AtBatControls from './AtBatControls.jsx'
 import EventLog from './EventLog.jsx'
 import CupIcon from '../CupIcon.jsx'
@@ -18,6 +18,11 @@ export default function GameBoard({ gameState, onAtBat, onUndo, onReset, liveCon
   const isLive = !!liveConfig
 
   const { shareCode, isSharing, startSharing } = useShareSync(gameState)
+
+  // Auto-start sharing as soon as the game board mounts
+  useEffect(() => {
+    startSharing()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCopyCode() {
     if (!shareCode) return
@@ -52,20 +57,20 @@ export default function GameBoard({ gameState, onAtBat, onUndo, onReset, liveCon
         </div>
       </div>
 
-      {/* Share code banner */}
-      {shareCode ? (
-        <div className="share-code-banner">
-          <span className="share-code-label">Join code:</span>
-          <span className="share-code-value">{shareCode}</span>
-          <button className="share-code-copy" onClick={handleCopyCode}>
-            {copiedCode ? 'Copied!' : 'Copy Link'}
-          </button>
-        </div>
-      ) : (
-        <button className="share-game-btn" onClick={startSharing}>
-          Share Game
-        </button>
-      )}
+      {/* Share code banner — always visible */}
+      <div className="share-code-banner">
+        <span className="share-code-label">Join code:</span>
+        {shareCode ? (
+          <>
+            <span className="share-code-value">{shareCode}</span>
+            <button className="share-code-copy" onClick={handleCopyCode}>
+              {copiedCode ? 'Copied!' : 'Copy Link'}
+            </button>
+          </>
+        ) : (
+          <span className="share-code-generating">generating…</span>
+        )}
+      </div>
 
       {/* Live indicator bar */}
       {isLive && liveStatus && (

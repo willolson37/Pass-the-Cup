@@ -1238,6 +1238,12 @@ html, body {
   font-family: monospace;
   flex: 1;
 }
+.share-code-generating {
+  font-size: 13px;
+  color: #64748b;
+  font-style: italic;
+  flex: 1;
+}
 .share-code-copy {
   background: #334155;
   border: none;
