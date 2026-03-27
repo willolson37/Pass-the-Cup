@@ -1641,3 +1641,48 @@ html, body {
   background: #e5e7eb;
   border-radius: 2px;
 }
+
+/* ── Auth screen ── */
+.auth-screen { padding-top: 16px; }
+.auth-card { text-align: center; }
+.auth-title { font-size: 24px; font-weight: 800; color: #111827; margin-bottom: 4px; }
+.auth-subtitle { font-size: 14px; color: #6b7280; margin-bottom: 20px; }
+.auth-form { display: flex; flex-direction: column; gap: 12px; text-align: left; }
+.auth-input { width: 100%; height: 48px; background: #f3f4f6; border: none; border-radius: 12px; padding: 0 16px; font-size: 16px; color: #111827; outline: none; transition: box-shadow 0.15s; }
+.auth-input:focus { box-shadow: 0 0 0 2px #3b82f6; }
+.auth-error { color: #ef4444; font-size: 13px; text-align: center; }
+.auth-success { color: #22c55e; font-size: 13px; text-align: center; }
+.auth-toggle { font-size: 13px; color: #6b7280; text-align: center; margin-top: 16px; }
+.auth-toggle-link { background: none; border: none; color: #3b82f6; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
+.auth-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+/* ── Pricing screen ── */
+.pricing-screen { padding-top: 24px; padding-left: 16px; padding-right: 16px; }
+.pricing-header { text-align: center; margin-bottom: 20px; }
+.pricing-title { font-size: 26px; font-weight: 900; color: #111827; letter-spacing: -0.5px; }
+.pricing-subtitle { font-size: 14px; color: #6b7280; margin-top: 4px; }
+.pricing-cards { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+.pricing-card { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 24px; border: 1.5px solid #e5e7eb; position: relative; }
+.pricing-card.featured { border-color: #22c55e; }
+.pricing-best-value { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 9999px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+.pricing-card-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+.pricing-price-row { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; }
+.pricing-price { font-size: 36px; font-weight: 900; color: #22c55e; line-height: 1; }
+.pricing-period { font-size: 14px; color: #6b7280; }
+.pricing-features { list-style: none; margin: 14px 0 18px; display: flex; flex-direction: column; gap: 7px; }
+.pricing-feature { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #374151; }
+.pricing-check { flex-shrink: 0; color: #22c55e; font-weight: 700; }
+.pricing-error { color: #ef4444; font-size: 13px; text-align: center; margin-top: 8px; }
+
+/* ── Home user status bar ── */
+.user-status-bar { display: flex; align-items: center; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f3f4f6; flex-wrap: wrap; }
+.user-status-email { font-size: 12px; color: #6b7280; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.user-plan-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: #f3f4f6; color: #6b7280; flex-shrink: 0; }
+.user-plan-badge.active { background: #dcfce7; color: #15803d; }
+.user-signout-link { background: none; border: none; color: #9ca3af; font-size: 12px; cursor: pointer; padding: 0; flex-shrink: 0; }
+.user-signout-link:hover { color: #ef4444; }
+.user-signin-prompt { margin-top: 16px; padding-top: 14px; border-top: 1px solid #f3f4f6; text-align: center; }
+.user-signin-link { background: none; border: none; color: #3b82f6; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
+.plan-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
+.plan-season { background: #dcfce7; color: #15803d; }
+.plan-game { background: #dbeafe; color: #1d4ed8; }
