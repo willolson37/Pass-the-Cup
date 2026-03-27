@@ -79,10 +79,20 @@ export default function useShareSync(gameState) {
   const startSharing = useCallback(async () => {
     if (isSharingRef.current) return
 
+    setShareError(false)
     const code = generateCode()
 
+    // Timeout: if Supabase doesn't respond in 8s, surface the error
+    const timeoutId = setTimeout(() => {
+      if (!isSharingRef.current) {
+        console.error('[useShareSync] timed out waiting for Supabase')
+        setShareError(true)
+      }
+    }, 8000)
+
     try {
-      const { error } = await supabase
+      console.log('[useShareSync] inserting code:', code)
+      const { data, error } = await supabase
         .from('game_sessions')
         .upsert(
           {
@@ -93,19 +103,24 @@ export default function useShareSync(gameState) {
           },
           { onConflict: 'code' }
         )
+        .select()
+
+      clearTimeout(timeoutId)
 
       if (error) {
-        console.error('[useShareSync] startSharing error:', error.message)
+        console.error('[useShareSync] startSharing error:', error.code, error.message, error.details)
         setShareError(true)
         return
       }
 
+      console.log('[useShareSync] session created:', data)
       codeRef.current = code
       isSharingRef.current = true
       setShareError(false)
       setShareCode(code)
       setIsSharing(true)
     } catch (err) {
+      clearTimeout(timeoutId)
       console.error('[useShareSync] unexpected startSharing error:', err)
       setShareError(true)
     }
