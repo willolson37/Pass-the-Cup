@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import CupIcon from '../CupIcon.jsx'
+import { POT_MODE_OPTIONS } from '../../utils/gameLogic.js'
 
 const MAX_PLAYERS = 9
 const MIN_PLAYERS = 2
@@ -19,6 +20,7 @@ const PLAYER_COLORS = [
 export default function PlayerSetup({ mode, onComplete, onBack }) {
   const [players, setPlayers] = useState(['', ''])
   const [inputError, setInputError] = useState('')
+  const [potMode, setPotMode] = useState(null)
 
   function handleNameChange(idx, value) {
     setPlayers((prev) => prev.map((p, i) => (i === idx ? value : p)))
@@ -47,10 +49,10 @@ export default function PlayerSetup({ mode, onComplete, onBack }) {
       setInputError('Player names must be unique.')
       return
     }
-    onComplete(trimmed)
+    onComplete(trimmed, potMode)
   }
 
-  const canStart = players.length >= MIN_PLAYERS && players.every((p) => p.trim() !== '')
+  const canStart = players.length >= MIN_PLAYERS && players.every((p) => p.trim() !== '') && potMode !== null
 
   return (
     <div className="screen setup-screen">
@@ -118,6 +120,24 @@ export default function PlayerSetup({ mode, onComplete, onBack }) {
             + Add Player
           </button>
         )}
+
+        {/* End Game Rule */}
+        <div className="pot-mode-section">
+          <div className="pot-mode-heading">End Game Rule</div>
+          <div className="pot-mode-grid">
+            {POT_MODE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`pot-mode-card${potMode === opt.value ? ' selected' : ''}`}
+                onClick={() => setPotMode(opt.value)}
+                type="button"
+              >
+                <div className="pot-mode-name">{opt.label}</div>
+                <div className="pot-mode-desc">{opt.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <button
           className="btn-start"

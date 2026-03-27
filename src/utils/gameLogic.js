@@ -1,3 +1,33 @@
+export const POT_MODES = {
+  CLOSEST_TO_EVEN: 'closestToEven',
+  WALK_OFF: 'walkOff',
+  CHOP_IT: 'chopIt',
+  LAST_MAN_STANDING: 'lastManStanding',
+}
+
+export const POT_MODE_OPTIONS = [
+  {
+    value: POT_MODES.CLOSEST_TO_EVEN,
+    label: 'Closest to Even',
+    desc: 'Player nearest $0 wins the pot',
+  },
+  {
+    value: POT_MODES.WALK_OFF,
+    label: 'Walk-off',
+    desc: 'Last hit of the game wins the pot',
+  },
+  {
+    value: POT_MODES.CHOP_IT,
+    label: 'Chop It',
+    desc: 'Split remaining pot evenly',
+  },
+  {
+    value: POT_MODES.LAST_MAN_STANDING,
+    label: 'Last Man Standing',
+    desc: 'Final at-bat takes the pot',
+  },
+]
+
 export const OUTCOMES = {
   SINGLE: 'single',
   DOUBLE: 'double',
@@ -24,7 +54,7 @@ export const OUTCOME_LABELS = {
   [OUTCOMES.ERROR]: 'Error',
 }
 
-export function createInitialState(playerNames) {
+export function createInitialState(playerNames, potMode = null) {
   const players = playerNames.map((name, idx) => ({
     id: idx,
     name,
@@ -35,6 +65,7 @@ export function createInitialState(playerNames) {
     pot: playerNames.length,
     currentPlayerIndex: 0,
     events: [],
+    potMode,
   }
 }
 
@@ -179,6 +210,74 @@ export function calculateSettlement(players) {
   }
 
   return transactions
+}
+
+// Distributes remaining pot according to the chosen end-game rule.
+// Returns { adjustedPlayers, potWinnerDesc } — use adjustedPlayers for settlement.
+export function applyPotMode(gameState) {
+  const { players, pot, potMode, currentPlayerIndex, events } = gameState
+
+  if (!pot || pot === 0) {
+    return { adjustedPlayers: players.map(p => ({ ...p })), potWinnerDesc: null }
+  }
+
+  let adjustedPlayers = players.map(p => ({ ...p }))
+  let potWinnerDesc = null
+
+  switch (potMode) {
+    case POT_MODES.CLOSEST_TO_EVEN: {
+      let closest = players[0]
+      for (const p of players) {
+        if (Math.abs(p.balance) < Math.abs(closest.balance)) closest = p
+      }
+      const idx = adjustedPlayers.findIndex(p => p.id === closest.id)
+      adjustedPlayers[idx].balance += pot
+      potWinnerDesc = `${closest.name} was closest to even — wins $${pot} from the cup`
+      break
+    }
+    case POT_MODES.WALK_OFF: {
+      const HIT_OUTCOMES = [OUTCOMES.SINGLE, OUTCOMES.DOUBLE, OUTCOMES.TRIPLE, OUTCOMES.HOME_RUN]
+      const lastHit = events.find(e => HIT_OUTCOMES.includes(e.outcome))
+      if (lastHit) {
+        const idx = adjustedPlayers.findIndex(p => p.name === lastHit.playerName)
+        if (idx !== -1) {
+          adjustedPlayers[idx].balance += pot
+          potWinnerDesc = `${lastHit.playerName} had the last hit — walk-off, wins $${pot} from the cup`
+        }
+      } else {
+        // No hits recorded — chop it
+        const perPlayer = Math.floor((pot * 100) / players.length) / 100
+        const leftover = Math.round((pot - perPlayer * players.length) * 100) / 100
+        adjustedPlayers = adjustedPlayers.map((p, i) => ({
+          ...p,
+          balance: Math.round((p.balance + perPlayer + (i === 0 ? leftover : 0)) * 100) / 100,
+        }))
+        potWinnerDesc = `No hits recorded — $${pot} split evenly`
+      }
+      break
+    }
+    case POT_MODES.CHOP_IT: {
+      const perPlayer = Math.floor((pot * 100) / players.length) / 100
+      const leftover = Math.round((pot - perPlayer * players.length) * 100) / 100
+      adjustedPlayers = adjustedPlayers.map((p, i) => ({
+        ...p,
+        balance: Math.round((p.balance + perPlayer + (i === 0 ? leftover : 0)) * 100) / 100,
+      }))
+      potWinnerDesc = `$${pot} split evenly among all players`
+      break
+    }
+    case POT_MODES.LAST_MAN_STANDING: {
+      const lastIdx = (currentPlayerIndex - 1 + players.length) % players.length
+      adjustedPlayers[lastIdx].balance += pot
+      potWinnerDesc = `${players[lastIdx].name} had the last at-bat — wins $${pot} from the cup`
+      break
+    }
+    default:
+      potWinnerDesc = `$${pot} remaining in the cup — carry over or split manually`
+      break
+  }
+
+  return { adjustedPlayers, potWinnerDesc }
 }
 
 export function classifyMLBPlay(play) {

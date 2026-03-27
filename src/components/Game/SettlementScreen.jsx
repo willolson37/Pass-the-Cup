@@ -1,4 +1,4 @@
-import { calculateSettlement } from '../../utils/gameLogic.js'
+import { calculateSettlement, applyPotMode } from '../../utils/gameLogic.js'
 import CupIcon from '../CupIcon.jsx'
 
 const PLAYER_COLORS = [
@@ -45,12 +45,15 @@ function RankBadge({ rank }) {
 export default function SettlementScreen({ gameState, onNewGame, onResume }) {
   const { players, pot } = gameState
 
-  // Sort players best to worst
-  const ranked = [...players]
+  // Apply pot distribution rule first
+  const { adjustedPlayers, potWinnerDesc } = applyPotMode(gameState)
+
+  // Sort adjusted players best to worst for standings
+  const ranked = [...adjustedPlayers]
     .sort((a, b) => b.balance - a.balance)
     .map((p, i) => ({ ...p, rank: i + 1 }))
 
-  const transactions = calculateSettlement(players)
+  const transactions = calculateSettlement(adjustedPlayers)
 
   return (
     <div className="screen settlement-screen">
@@ -62,6 +65,14 @@ export default function SettlementScreen({ gameState, onNewGame, onResume }) {
         <h1 className="settlement-title">Game Over</h1>
         <p className="settlement-subtitle">Final Results</p>
       </div>
+
+      {/* Pot distribution callout */}
+      {pot > 0 && potWinnerDesc && (
+        <div className="pot-outcome-banner">
+          <CupIcon size={20} />
+          <span>{potWinnerDesc}</span>
+        </div>
+      )}
 
       {/* Final standings */}
       <div className="settlement-card">
@@ -87,15 +98,6 @@ export default function SettlementScreen({ gameState, onNewGame, onResume }) {
             )
           })}
         </div>
-
-        {pot > 0 && (
-          <div className="pot-remaining">
-            <CupIcon size={18} />
-            <span>
-              <strong>${pot}</strong> remaining in the cup — split or save for next game
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Settlement transactions */}
