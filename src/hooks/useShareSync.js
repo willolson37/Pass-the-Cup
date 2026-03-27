@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase.js'
 
-// Generates a 6-char code from unambiguous chars (no 0/O/1/I)
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   let code = ''
@@ -11,168 +10,78 @@ function generateCode() {
   return code
 }
 
-// Hook usage: const { shareCode, isSharing, startSharing, stopSharing } = useShareSync(gameState)
-// - startSharing: generates code, creates Supabase record, starts auto-syncing gameState changes
-// - stopSharing: marks game inactive
-// - shareCode: the 6-char code or null
-// - isSharing: boolean
-
 export default function useShareSync(gameState) {
-  const [shareCode, setShareCode] = useState(null)
-  const [isSharing, setIsSharing] = useState(false)
+  // Generate the code immediately on mount — don't wait for Supabase
+  const [shareCode] = useState(() => generateCode())
+  const [syncReady, setSyncReady] = useState(false) // true once Supabase confirms
   const [shareError, setShareError] = useState(false)
-  const codeRef = useRef(null)
-  const isSharingRef = useRef(false)
   const syncTimeoutRef = useRef(null)
+  const registeredRef = useRef(false)
 
-  // Keep refs in sync with state so callbacks always have current values
-  useEffect(() => {
-    isSharingRef.current = isSharing
-  }, [isSharing])
-
-  useEffect(() => {
-    codeRef.current = shareCode
-  }, [shareCode])
-
-  const syncState = useCallback(async (state, code) => {
-    if (!code || !state) return
+  // Register the code with Supabase once on mount
+  const register = useCallback(async (code, state) => {
     try {
       const { error } = await supabase
         .from('game_sessions')
-        .upsert(
-          {
-            code,
-            game_state: state,
-            updated_at: new Date().toISOString(),
-            is_active: true,
-          },
-          { onConflict: 'code' }
-        )
-      if (error) {
-        console.error('[useShareSync] upsert error:', error.message)
-      }
-    } catch (err) {
-      console.error('[useShareSync] unexpected sync error:', err)
-    }
-  }, [])
-
-  // Auto-sync on gameState changes when sharing is active.
-  // Debounce by 300ms to avoid hammering Supabase on rapid state updates.
-  useEffect(() => {
-    if (!isSharingRef.current || !codeRef.current) return
-
-    if (syncTimeoutRef.current) {
-      clearTimeout(syncTimeoutRef.current)
-    }
-
-    syncTimeoutRef.current = setTimeout(() => {
-      syncState(gameState, codeRef.current)
-    }, 300)
-
-    return () => {
-      if (syncTimeoutRef.current) {
-        clearTimeout(syncTimeoutRef.current)
-      }
-    }
-  }, [gameState, syncState])
-
-  const startSharing = useCallback(async () => {
-    if (isSharingRef.current) return
-
-    setShareError(false)
-    const code = generateCode()
-
-    // Timeout: if Supabase doesn't respond in 8s, surface the error
-    const timeoutId = setTimeout(() => {
-      if (!isSharingRef.current) {
-        console.error('[useShareSync] timed out waiting for Supabase')
-        setShareError(true)
-      }
-    }, 8000)
-
-    try {
-      console.log('[useShareSync] inserting code:', code)
-      const { data, error } = await supabase
-        .from('game_sessions')
-        .upsert(
-          {
-            code,
-            game_state: gameState,
-            updated_at: new Date().toISOString(),
-            is_active: true,
-          },
-          { onConflict: 'code' }
-        )
-        .select()
-
-      clearTimeout(timeoutId)
+        .insert({ code, game_state: state, is_active: true })
 
       if (error) {
-        console.error('[useShareSync] startSharing error:', error.code, error.message, error.details)
+        console.error('[useShareSync] register error:', error.code, error.message)
         setShareError(true)
-        return
+      } else {
+        registeredRef.current = true
+        setSyncReady(true)
+        setShareError(false)
       }
-
-      console.log('[useShareSync] session created:', data)
-      codeRef.current = code
-      isSharingRef.current = true
-      setShareError(false)
-      setShareCode(code)
-      setIsSharing(true)
     } catch (err) {
-      clearTimeout(timeoutId)
-      console.error('[useShareSync] unexpected startSharing error:', err)
+      console.error('[useShareSync] register exception:', err)
       setShareError(true)
     }
-  }, [gameState])
-
-  const stopSharing = useCallback(async () => {
-    if (!isSharingRef.current || !codeRef.current) return
-
-    const code = codeRef.current
-
-    try {
-      const { error } = await supabase
-        .from('game_sessions')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('code', code)
-
-      if (error) {
-        console.error('[useShareSync] stopSharing error:', error.message)
-      }
-    } catch (err) {
-      console.error('[useShareSync] unexpected stopSharing error:', err)
-    }
-
-    if (syncTimeoutRef.current) {
-      clearTimeout(syncTimeoutRef.current)
-    }
-
-    codeRef.current = null
-    isSharingRef.current = false
-    setShareCode(null)
-    setIsSharing(false)
   }, [])
 
-  // Clean up on unmount — mark session inactive without blocking
+  useEffect(() => {
+    register(shareCode, gameState)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync state updates to Supabase (debounced 500ms), only once registered
+  useEffect(() => {
+    if (!syncReady) return
+
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current)
+
+    syncTimeoutRef.current = setTimeout(async () => {
+      try {
+        const { error } = await supabase
+          .from('game_sessions')
+          .update({ game_state: gameState, updated_at: new Date().toISOString() })
+          .eq('code', shareCode)
+        if (error) console.error('[useShareSync] sync error:', error.message)
+      } catch (err) {
+        console.error('[useShareSync] sync exception:', err)
+      }
+    }, 500)
+
+    return () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current) }
+  }, [gameState, syncReady, shareCode])
+
+  // Mark inactive on unmount
   useEffect(() => {
     return () => {
-      if (syncTimeoutRef.current) {
-        clearTimeout(syncTimeoutRef.current)
-      }
-      if (codeRef.current) {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current)
+      if (registeredRef.current) {
         supabase
           .from('game_sessions')
-          .update({ is_active: false, updated_at: new Date().toISOString() })
-          .eq('code', codeRef.current)
-          .then(({ error }) => {
-            if (error) {
-              console.error('[useShareSync] cleanup error:', error.message)
-            }
-          })
+          .update({ is_active: false })
+          .eq('code', shareCode)
+          .then(() => {})
       }
     }
-  }, [])
+  }, [shareCode])
 
-  return { shareCode, isSharing, shareError, startSharing, stopSharing }
+  const retryRegister = useCallback(() => {
+    setShareError(false)
+    register(shareCode, gameState)
+  }, [shareCode, gameState, register])
+
+  return { shareCode, syncReady, shareError, retryRegister }
 }

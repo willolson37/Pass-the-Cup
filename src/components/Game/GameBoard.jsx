@@ -17,12 +17,9 @@ export default function GameBoard({ gameState, onAtBat, onUndo, onReset, liveCon
   const currentPlayer = players[currentPlayerIndex]
   const isLive = !!liveConfig
 
-  const { shareCode, isSharing, shareError, startSharing } = useShareSync(gameState)
+  const { shareCode, syncReady, shareError, retryRegister } = useShareSync(gameState)
 
-  // Auto-start sharing as soon as the game board mounts
-  useEffect(() => {
-    startSharing()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // No useEffect needed — code is generated immediately on mount
 
   function handleCopyCode() {
     if (!shareCode) return
@@ -60,19 +57,17 @@ export default function GameBoard({ gameState, onAtBat, onUndo, onReset, liveCon
       {/* Share code banner — always visible */}
       <div className="share-code-banner">
         <span className="share-code-label">Join code:</span>
-        {shareCode ? (
-          <>
-            <span className="share-code-value">{shareCode}</span>
-            <button className="share-code-copy" onClick={handleCopyCode}>
-              {copiedCode ? 'Copied!' : 'Copy Link'}
-            </button>
-          </>
-        ) : shareError ? (
-          <button className="share-code-retry" onClick={startSharing}>
-            Retry
+        <span className="share-code-value">{shareCode}</span>
+        {shareError ? (
+          <button className="share-code-retry" onClick={retryRegister} title="Spectators can't join yet — tap to retry">
+            ⚠ Retry
           </button>
+        ) : !syncReady ? (
+          <span className="share-code-generating">syncing…</span>
         ) : (
-          <span className="share-code-generating">generating…</span>
+          <button className="share-code-copy" onClick={handleCopyCode}>
+            {copiedCode ? 'Copied!' : 'Copy Link'}
+          </button>
         )}
       </div>
 
