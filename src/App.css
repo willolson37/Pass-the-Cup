@@ -1293,6 +1293,60 @@ html, body {
 }
 
 /* Pot mode picker in setup */
+/* Multiplier picker */
+.multiplier-row {
+  display: flex;
+  gap: 10px;
+}
+
+.multiplier-btn {
+  flex: 1;
+  padding: 10px 0;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.multiplier-btn:active {
+  transform: scale(0.97);
+}
+
+.multiplier-btn.selected {
+  border-color: #c8882a;
+  background: #fff8f0;
+  color: #c8882a;
+}
+
+.multiplier-note {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Multiplier badge on game board */
+.game-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.multiplier-badge {
+  background: #c8882a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+
 .pot-mode-section {
   margin-top: 20px;
   margin-bottom: 4px;

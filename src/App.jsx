@@ -37,7 +37,7 @@ function appReducer(state, action) {
       return { ...state, mode: action.mode, screen: 'setup' }
 
     case 'SETUP_COMPLETE': {
-      const gameState = createInitialState(action.playerNames, action.potMode)
+      const gameState = createInitialState(action.playerNames, action.potMode, action.multiplier)
       const nextScreen = action.nextScreen || (state.mode === 'live' ? 'liveSelect' : 'game')
       return {
         ...state,
@@ -119,21 +119,18 @@ export default function App() {
     dispatch({ type: 'SELECT_MODE', mode })
   }, [])
 
-  const onSetupComplete = useCallback((playerNames, potMode) => {
-    dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode })
+  const onSetupComplete = useCallback((playerNames, potMode, multiplier) => {
+    dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, multiplier })
   }, [])
 
   // Called when setup is complete for live mode — gate behind auth + subscription
-  const onSetupCompleteLive = useCallback((playerNames, potMode) => {
+  const onSetupCompleteLive = useCallback((playerNames, potMode, multiplier) => {
     if (!user) {
-      // Not logged in — go to auth screen
-      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, nextScreen: 'auth' })
+      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, multiplier, nextScreen: 'auth' })
     } else if (hasLiveAccess()) {
-      // Has access — go to live select
-      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, nextScreen: 'liveSelect' })
+      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, multiplier, nextScreen: 'liveSelect' })
     } else {
-      // Logged in but no credits/plan — go to pricing
-      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, nextScreen: 'pricing' })
+      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, multiplier, nextScreen: 'pricing' })
     }
   }, [user, hasLiveAccess])
 

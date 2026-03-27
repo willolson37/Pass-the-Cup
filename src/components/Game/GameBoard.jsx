@@ -11,7 +11,7 @@ const PLAYER_COLORS = [
 
 export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liveStatus }) {
   const [showSettlement, setShowSettlement] = useState(false)
-  const { players, pot, currentPlayerIndex, events } = gameState
+  const { players, pot, currentPlayerIndex, events, multiplier } = gameState
   const currentPlayer = players[currentPlayerIndex]
   const isLive = !!liveConfig
 
@@ -30,9 +30,14 @@ export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liv
       {/* Header */}
       <div className="game-header">
         <h1 className="game-title">Pass the Cup</h1>
-        <button className="btn btn-danger btn-sm" onClick={() => setShowSettlement(true)}>
-          End Game
-        </button>
+        <div className="game-header-right">
+          {multiplier > 1 && (
+            <span className="multiplier-badge">{multiplier}x</span>
+          )}
+          <button className="btn btn-danger btn-sm" onClick={() => setShowSettlement(true)}>
+            End Game
+          </button>
+        </div>
       </div>
 
       {/* Live indicator bar */}

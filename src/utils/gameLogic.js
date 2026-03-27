@@ -54,25 +54,28 @@ export const OUTCOME_LABELS = {
   [OUTCOMES.ERROR]: 'Error',
 }
 
-export function createInitialState(playerNames, potMode = null) {
+export function createInitialState(playerNames, potMode = null, multiplier = 1) {
+  const m = multiplier || 1
   const players = playerNames.map((name, idx) => ({
     id: idx,
     name,
-    balance: -1,
+    balance: -m,
   }))
   return {
     players,
-    pot: playerNames.length,
+    pot: playerNames.length * m,
     currentPlayerIndex: 0,
     events: [],
     potMode,
+    multiplier: m,
   }
 }
 
 let eventIdCounter = 0
 
 export function processAtBat(state, outcome, mlbContext = null) {
-  const { players, pot, currentPlayerIndex, events } = state
+  const { players, pot, currentPlayerIndex, events, multiplier } = state
+  const m = multiplier || 1
   const currentPlayer = players[currentPlayerIndex]
   const numPlayers = players.length
 
@@ -83,7 +86,7 @@ export function processAtBat(state, outcome, mlbContext = null) {
 
   switch (outcome) {
     case OUTCOMES.SINGLE: {
-      const take = Math.min(1, pot)
+      const take = Math.min(1 * m, pot)
       newPlayers[currentPlayerIndex].balance += take
       newPot = pot - take
       balanceChange = take
@@ -91,7 +94,7 @@ export function processAtBat(state, outcome, mlbContext = null) {
       break
     }
     case OUTCOMES.DOUBLE: {
-      const take = Math.min(2, pot)
+      const take = Math.min(2 * m, pot)
       newPlayers[currentPlayerIndex].balance += take
       newPot = pot - take
       balanceChange = take
@@ -99,7 +102,7 @@ export function processAtBat(state, outcome, mlbContext = null) {
       break
     }
     case OUTCOMES.TRIPLE: {
-      const take = Math.min(3, pot)
+      const take = Math.min(3 * m, pot)
       newPlayers[currentPlayerIndex].balance += take
       newPot = pot - take
       balanceChange = take
@@ -110,40 +113,40 @@ export function processAtBat(state, outcome, mlbContext = null) {
       const potTaken = pot
       // HR hitter takes the entire pot
       newPlayers[currentPlayerIndex].balance += potTaken
-      // All players re-ante $1 (including HR hitter)
-      newPlayers = newPlayers.map(p => ({ ...p, balance: p.balance - 1 }))
-      newPot = numPlayers
-      // Net balance change for HR hitter: potTaken - 1 (took pot, paid re-ante)
-      balanceChange = potTaken - 1
-      description = `${currentPlayer.name} hit a HOME RUN — takes $${potTaken} from the pot! Everyone re-antes $1`
+      // All players re-ante (scaled by multiplier)
+      newPlayers = newPlayers.map(p => ({ ...p, balance: p.balance - m }))
+      newPot = numPlayers * m
+      // Net balance change for HR hitter: potTaken - m (took pot, paid re-ante)
+      balanceChange = potTaken - m
+      description = `${currentPlayer.name} hit a HOME RUN — takes $${potTaken} from the pot! Everyone re-antes $${m}`
       break
     }
     case OUTCOMES.OUT: {
-      newPlayers[currentPlayerIndex].balance -= 1
-      newPot = pot + 1
-      balanceChange = -1
-      description = `${currentPlayer.name} made an Out — adds $1 to the pot`
+      newPlayers[currentPlayerIndex].balance -= 1 * m
+      newPot = pot + 1 * m
+      balanceChange = -1 * m
+      description = `${currentPlayer.name} made an Out — adds $${1 * m} to the pot`
       break
     }
     case OUTCOMES.STRIKEOUT: {
-      newPlayers[currentPlayerIndex].balance -= 2
-      newPot = pot + 2
-      balanceChange = -2
-      description = `${currentPlayer.name} struck out — adds $2 to the pot`
+      newPlayers[currentPlayerIndex].balance -= 2 * m
+      newPot = pot + 2 * m
+      balanceChange = -2 * m
+      description = `${currentPlayer.name} struck out — adds $${2 * m} to the pot`
       break
     }
     case OUTCOMES.DOUBLE_PLAY: {
-      newPlayers[currentPlayerIndex].balance -= 2
-      newPot = pot + 2
-      balanceChange = -2
-      description = `${currentPlayer.name} grounded into a Double Play — adds $2 to the pot`
+      newPlayers[currentPlayerIndex].balance -= 2 * m
+      newPot = pot + 2 * m
+      balanceChange = -2 * m
+      description = `${currentPlayer.name} grounded into a Double Play — adds $${2 * m} to the pot`
       break
     }
     case OUTCOMES.ERROR: {
-      newPlayers[currentPlayerIndex].balance -= 1
-      newPot = pot + 1
-      balanceChange = -1
-      description = `${currentPlayer.name} reached on an Error — adds $1 to the pot`
+      newPlayers[currentPlayerIndex].balance -= 1 * m
+      newPot = pot + 1 * m
+      balanceChange = -1 * m
+      description = `${currentPlayer.name} reached on an Error — adds $${1 * m} to the pot`
       break
     }
     case OUTCOMES.WALK: {

@@ -21,6 +21,7 @@ export default function PlayerSetup({ mode, onComplete, onBack }) {
   const [players, setPlayers] = useState(['', ''])
   const [inputError, setInputError] = useState('')
   const [potMode, setPotMode] = useState(null)
+  const [multiplier, setMultiplier] = useState(1)
 
   function handleNameChange(idx, value) {
     setPlayers((prev) => prev.map((p, i) => (i === idx ? value : p)))
@@ -49,7 +50,7 @@ export default function PlayerSetup({ mode, onComplete, onBack }) {
       setInputError('Player names must be unique.')
       return
     }
-    onComplete(trimmed, potMode)
+    onComplete(trimmed, potMode, multiplier)
   }
 
   const canStart = players.length >= MIN_PLAYERS && players.every((p) => p.trim() !== '') && potMode !== null
@@ -120,6 +121,28 @@ export default function PlayerSetup({ mode, onComplete, onBack }) {
             + Add Player
           </button>
         )}
+
+        {/* Stakes Multiplier */}
+        <div className="pot-mode-section">
+          <div className="pot-mode-heading">Stakes</div>
+          <div className="multiplier-row">
+            {[1, 2, 5, 10].map((val) => (
+              <button
+                key={val}
+                className={`multiplier-btn${multiplier === val ? ' selected' : ''}`}
+                onClick={() => setMultiplier(val)}
+                type="button"
+              >
+                {val === 1 ? '1x' : `${val}x`}
+              </button>
+            ))}
+          </div>
+          {multiplier > 1 && (
+            <p className="multiplier-note">
+              Ante ${multiplier} · Single ${multiplier} · Double ${multiplier * 2} · Triple ${multiplier * 3}
+            </p>
+          )}
+        </div>
 
         {/* End Game Rule */}
         <div className="pot-mode-section">
