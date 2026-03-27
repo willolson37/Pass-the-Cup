@@ -1,7 +1,16 @@
 import CupIcon from './CupIcon.jsx'
 import BaseballIcon from './BaseballIcon.jsx'
 
-export default function Home({ onSelectMode }) {
+export default function Home({ onSelectMode, user, profile, hasLiveAccess, onSignOut }) {
+  const getPlanLabel = () => {
+    if (!profile) return null
+    if (profile.plan === 'season') return 'Season'
+    if (profile.plan === 'game' || (profile.game_credits || 0) > 0) return `${profile.game_credits || 0} credit${(profile.game_credits || 0) !== 1 ? 's' : ''}`
+    return 'Free'
+  }
+
+  const isActive = hasLiveAccess && hasLiveAccess()
+
   return (
     <div className="screen home-screen">
       <div className="home-card card">
@@ -48,6 +57,29 @@ export default function Home({ onSelectMode }) {
             <div className="mode-arrow">›</div>
           </button>
         </div>
+
+        {user ? (
+          <div className="user-status-bar">
+            <span className="user-status-email" title={user.email}>{user.email}</span>
+            {profile && (
+              <span className={`user-plan-badge${isActive ? ' active' : ''}`}>
+                {getPlanLabel()}
+              </span>
+            )}
+            <button className="user-signout-link" onClick={onSignOut}>
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <div className="user-signin-prompt">
+            <button
+              className="user-signin-link"
+              onClick={() => onSelectMode('live')}
+            >
+              Sign in for Live Mode
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,10 +1,13 @@
 import { useReducer, useEffect, useCallback } from 'react'
 import { createInitialState, processAtBat } from './utils/gameLogic.js'
+import { useAuth } from './hooks/useAuth.js'
 import Home from './components/Home.jsx'
 import PlayerSetup from './components/Setup/PlayerSetup.jsx'
 import GameBoard from './components/Game/GameBoard.jsx'
 import GameSelector from './components/LiveGame/GameSelector.jsx'
 import LiveGameBoard from './components/LiveGame/LiveGameBoard.jsx'
+import AuthScreen from './components/Auth/AuthScreen.jsx'
+import PricingScreen from './components/Paywall/PricingScreen.jsx'
 
 const LS_KEY = 'ptc-state'
 
@@ -35,7 +38,7 @@ function appReducer(state, action) {
 
     case 'SETUP_COMPLETE': {
       const gameState = createInitialState(action.playerNames)
-      const nextScreen = state.mode === 'live' ? 'liveSelect' : 'game'
+      const nextScreen = action.nextScreen || (state.mode === 'live' ? 'liveSelect' : 'game')
       return {
         ...state,
         playerNames: action.playerNames,
@@ -73,6 +76,9 @@ function appReducer(state, action) {
     case 'BACK_TO_SETUP':
       return { ...state, screen: 'setup', gameState: null, liveConfig: null }
 
+    case 'GO_TO_SCREEN':
+      return { ...state, screen: action.screen }
+
     case 'LOAD_STATE':
       return action.savedState
 
@@ -87,6 +93,8 @@ export default function App() {
     return saved || initialAppState
   })
 
+  const { user, profile, loading, hasLiveAccess, signOut, refreshProfile } = useAuth()
+
   // Persist state on every change
   useEffect(() => {
     try {
@@ -96,6 +104,17 @@ export default function App() {
     }
   }, [appState])
 
+  // Handle ?payment=success redirect back from Stripe checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('payment') === 'success') {
+      window.history.replaceState({}, '', window.location.pathname)
+      refreshProfile().then(() => {
+        dispatch({ type: 'GO_TO_SCREEN', screen: 'liveSelect' })
+      })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const onSelectMode = useCallback((mode) => {
     dispatch({ type: 'SELECT_MODE', mode })
   }, [])
@@ -103,6 +122,20 @@ export default function App() {
   const onSetupComplete = useCallback((playerNames) => {
     dispatch({ type: 'SETUP_COMPLETE', playerNames })
   }, [])
+
+  // Called when setup is complete for live mode — gate behind auth + subscription
+  const onSetupCompleteLive = useCallback((playerNames) => {
+    if (!user) {
+      // Not logged in — go to auth screen
+      dispatch({ type: 'SETUP_COMPLETE', playerNames, nextScreen: 'auth' })
+    } else if (hasLiveAccess()) {
+      // Has access — go to live select
+      dispatch({ type: 'SETUP_COMPLETE', playerNames, nextScreen: 'liveSelect' })
+    } else {
+      // Logged in but no credits/plan — go to pricing
+      dispatch({ type: 'SETUP_COMPLETE', playerNames, nextScreen: 'pricing' })
+    }
+  }, [user, hasLiveAccess])
 
   const onAtBat = useCallback((outcome, mlbContext = null) => {
     dispatch({ type: 'AT_BAT', outcome, mlbContext })
@@ -125,17 +158,62 @@ export default function App() {
     dispatch({ type: 'BACK_TO_SETUP' })
   }, [])
 
+  // After auth/pricing, re-check access and proceed
+  const onAuthSuccess = useCallback(() => {
+    // onAuthStateChange in useAuth handles user state; after login check for access
+    // The auth screen will trigger a re-render when user changes, then we can check
+    if (hasLiveAccess()) {
+      dispatch({ type: 'GO_TO_SCREEN', screen: 'liveSelect' })
+    } else {
+      dispatch({ type: 'GO_TO_SCREEN', screen: 'pricing' })
+    }
+  }, [hasLiveAccess])
+
+  // When user state changes while on auth screen, auto-advance
+  useEffect(() => {
+    if (!loading && user && appState.screen === 'auth') {
+      if (hasLiveAccess()) {
+        dispatch({ type: 'GO_TO_SCREEN', screen: 'liveSelect' })
+      } else {
+        dispatch({ type: 'GO_TO_SCREEN', screen: 'pricing' })
+      }
+    }
+  }, [user, loading, appState.screen, hasLiveAccess])
+
   const { screen, mode, playerNames, gameState, liveConfig } = appState
+
+  // Choose the correct onSetupComplete based on mode
+  const handleSetupComplete = mode === 'live' ? onSetupCompleteLive : onSetupComplete
 
   return (
     <div className="app">
-      {screen === 'home' && <Home onSelectMode={onSelectMode} />}
+      {screen === 'home' && (
+        <Home
+          onSelectMode={onSelectMode}
+          user={user}
+          profile={profile}
+          hasLiveAccess={hasLiveAccess}
+          onSignOut={signOut}
+        />
+      )}
 
       {screen === 'setup' && (
         <PlayerSetup
           mode={mode}
-          onComplete={onSetupComplete}
+          onComplete={handleSetupComplete}
           onBack={onResetGame}
+        />
+      )}
+
+      {screen === 'auth' && (
+        <AuthScreen onBack={() => dispatch({ type: 'BACK_TO_SETUP' })} />
+      )}
+
+      {screen === 'pricing' && (
+        <PricingScreen
+          user={user}
+          onBack={() => dispatch({ type: 'BACK_TO_SETUP' })}
+          onSuccess={() => dispatch({ type: 'SETUP_COMPLETE', playerNames: appState.playerNames, nextScreen: 'liveSelect' })}
         />
       )}
 
