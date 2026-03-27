@@ -8,8 +8,11 @@ import GameSelector from './components/LiveGame/GameSelector.jsx'
 import LiveGameBoard from './components/LiveGame/LiveGameBoard.jsx'
 import AuthScreen from './components/Auth/AuthScreen.jsx'
 import PricingScreen from './components/Paywall/PricingScreen.jsx'
+import SpectatorView from './components/SpectatorView.jsx'
+import HistoryScreen from './components/History/HistoryScreen.jsx'
 
 const LS_KEY = 'ptc-state'
+const HISTORY_KEY = 'ptc-history'
 
 const initialAppState = {
   screen: 'home',
@@ -17,6 +20,8 @@ const initialAppState = {
   playerNames: [],
   gameState: null,
   liveConfig: null,
+  previousGameState: null, // single-step undo
+  spectatorCode: null,
 }
 
 function loadSavedState() {
@@ -31,19 +36,47 @@ function loadSavedState() {
   }
 }
 
+function saveToHistory(gameState) {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY)
+    const history = raw ? JSON.parse(raw) : []
+    const winner = [...gameState.players].sort((a, b) => b.balance - a.balance)[0]
+    const entry = {
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      players: gameState.players.map(p => ({ name: p.name, finalBalance: p.balance })),
+      winner: winner?.name || '',
+      potMode: gameState.potMode || null,
+      multiplier: gameState.multiplier || 1,
+      totalAtBats: gameState.events?.length || 0,
+    }
+    history.unshift(entry)
+    // Keep last 50 games
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 50)))
+  } catch {
+    // ignore storage errors
+  }
+}
+
 function appReducer(state, action) {
   switch (action.type) {
     case 'SELECT_MODE':
       return { ...state, mode: action.mode, screen: 'setup' }
 
     case 'SETUP_COMPLETE': {
-      const gameState = createInitialState(action.playerNames, action.potMode, action.multiplier)
+      const gameState = createInitialState(
+        action.playerData,
+        action.potMode,
+        action.multiplier,
+        action.houseRules,
+      )
       const nextScreen = action.nextScreen || (state.mode === 'live' ? 'liveSelect' : 'game')
       return {
         ...state,
-        playerNames: action.playerNames,
+        playerNames: action.playerData.map(pd => typeof pd === 'string' ? pd : pd.name),
         gameState,
         screen: nextScreen,
+        previousGameState: null,
       }
     }
 
@@ -53,7 +86,20 @@ function appReducer(state, action) {
         action.outcome,
         action.mlbContext || null,
       )
-      return { ...state, gameState: newGameState }
+      return {
+        ...state,
+        gameState: newGameState,
+        previousGameState: state.gameState, // save for undo
+      }
+    }
+
+    case 'UNDO_AT_BAT': {
+      if (!state.previousGameState) return state
+      return {
+        ...state,
+        gameState: state.previousGameState,
+        previousGameState: null,
+      }
     }
 
     case 'SELECT_GAME':
@@ -74,10 +120,16 @@ function appReducer(state, action) {
       return { ...initialAppState }
 
     case 'BACK_TO_SETUP':
-      return { ...state, screen: 'setup', gameState: null, liveConfig: null }
+      return { ...state, screen: 'setup', gameState: null, liveConfig: null, previousGameState: null }
 
     case 'GO_TO_SCREEN':
       return { ...state, screen: action.screen }
+
+    case 'JOIN_GAME':
+      return { ...state, screen: 'spectator', spectatorCode: action.code }
+
+    case 'LEAVE_SPECTATOR':
+      return { ...state, screen: 'home', spectatorCode: null }
 
     case 'LOAD_STATE':
       return action.savedState
@@ -104,7 +156,7 @@ export default function App() {
     }
   }, [appState])
 
-  // Handle ?payment=success redirect back from Stripe checkout
+  // Handle ?payment=success and ?join=CODE URL params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('payment') === 'success') {
@@ -113,24 +165,28 @@ export default function App() {
         dispatch({ type: 'GO_TO_SCREEN', screen: 'liveSelect' })
       })
     }
+    const joinCode = params.get('join')
+    if (joinCode) {
+      window.history.replaceState({}, '', window.location.pathname)
+      dispatch({ type: 'JOIN_GAME', code: joinCode.toUpperCase() })
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSelectMode = useCallback((mode) => {
     dispatch({ type: 'SELECT_MODE', mode })
   }, [])
 
-  const onSetupComplete = useCallback((playerNames, potMode, multiplier) => {
-    dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, multiplier })
+  const onSetupComplete = useCallback((playerData, potMode, multiplier, houseRules) => {
+    dispatch({ type: 'SETUP_COMPLETE', playerData, potMode, multiplier, houseRules })
   }, [])
 
-  // Called when setup is complete for live mode — gate behind auth + subscription
-  const onSetupCompleteLive = useCallback((playerNames, potMode, multiplier) => {
+  const onSetupCompleteLive = useCallback((playerData, potMode, multiplier, houseRules) => {
     if (!user) {
-      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, multiplier, nextScreen: 'auth' })
+      dispatch({ type: 'SETUP_COMPLETE', playerData, potMode, multiplier, houseRules, nextScreen: 'auth' })
     } else if (hasLiveAccess()) {
-      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, multiplier, nextScreen: 'liveSelect' })
+      dispatch({ type: 'SETUP_COMPLETE', playerData, potMode, multiplier, houseRules, nextScreen: 'liveSelect' })
     } else {
-      dispatch({ type: 'SETUP_COMPLETE', playerNames, potMode, multiplier, nextScreen: 'pricing' })
+      dispatch({ type: 'SETUP_COMPLETE', playerData, potMode, multiplier, houseRules, nextScreen: 'pricing' })
     }
   }, [user, hasLiveAccess])
 
@@ -138,11 +194,19 @@ export default function App() {
     dispatch({ type: 'AT_BAT', outcome, mlbContext })
   }, [])
 
+  const onUndoAtBat = useCallback(() => {
+    dispatch({ type: 'UNDO_AT_BAT' })
+  }, [])
+
   const onSelectGame = useCallback((gameInfo) => {
     dispatch({ type: 'SELECT_GAME', gameInfo })
   }, [])
 
-  const onResetGame = useCallback(() => {
+  const onResetGame = useCallback((currentGameState) => {
+    // Save to history if there were at-bats
+    if (currentGameState && currentGameState.events?.length > 0) {
+      saveToHistory(currentGameState)
+    }
     dispatch({ type: 'RESET_GAME' })
     try {
       localStorage.removeItem(LS_KEY)
@@ -155,10 +219,12 @@ export default function App() {
     dispatch({ type: 'BACK_TO_SETUP' })
   }, [])
 
+  const onJoinGame = useCallback((code) => {
+    dispatch({ type: 'JOIN_GAME', code })
+  }, [])
+
   // After auth/pricing, re-check access and proceed
   const onAuthSuccess = useCallback(() => {
-    // onAuthStateChange in useAuth handles user state; after login check for access
-    // The auth screen will trigger a re-render when user changes, then we can check
     if (hasLiveAccess()) {
       dispatch({ type: 'GO_TO_SCREEN', screen: 'liveSelect' })
     } else {
@@ -177,9 +243,8 @@ export default function App() {
     }
   }, [user, loading, appState.screen, hasLiveAccess])
 
-  const { screen, mode, playerNames, gameState, liveConfig } = appState
+  const { screen, mode, playerNames, gameState, liveConfig, previousGameState, spectatorCode } = appState
 
-  // Choose the correct onSetupComplete based on mode
   const handleSetupComplete = mode === 'live' ? onSetupCompleteLive : onSetupComplete
 
   return (
@@ -187,6 +252,8 @@ export default function App() {
       {screen === 'home' && (
         <Home
           onSelectMode={onSelectMode}
+          onJoinGame={onJoinGame}
+          onViewHistory={() => dispatch({ type: 'GO_TO_SCREEN', screen: 'history' })}
           user={user}
           profile={profile}
           hasLiveAccess={hasLiveAccess}
@@ -210,7 +277,7 @@ export default function App() {
         <PricingScreen
           user={user}
           onBack={() => dispatch({ type: 'BACK_TO_SETUP' })}
-          onSuccess={() => dispatch({ type: 'SETUP_COMPLETE', playerNames: appState.playerNames, nextScreen: 'liveSelect' })}
+          onSuccess={() => dispatch({ type: 'SETUP_COMPLETE', playerData: appState.playerNames, nextScreen: 'liveSelect' })}
         />
       )}
 
@@ -218,6 +285,7 @@ export default function App() {
         <GameBoard
           gameState={gameState}
           onAtBat={onAtBat}
+          onUndo={previousGameState ? onUndoAtBat : null}
           onReset={onResetGame}
         />
       )}
@@ -235,8 +303,22 @@ export default function App() {
           gameState={gameState}
           liveConfig={liveConfig}
           onAtBat={onAtBat}
+          onUndo={previousGameState ? onUndoAtBat : null}
           onReset={onResetGame}
           playerNames={playerNames}
+        />
+      )}
+
+      {screen === 'spectator' && spectatorCode && (
+        <SpectatorView
+          code={spectatorCode}
+          onLeave={() => dispatch({ type: 'LEAVE_SPECTATOR' })}
+        />
+      )}
+
+      {screen === 'history' && (
+        <HistoryScreen
+          onBack={() => dispatch({ type: 'GO_TO_SCREEN', screen: 'home' })}
         />
       )}
     </div>

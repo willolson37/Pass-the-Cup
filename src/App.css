@@ -1181,6 +1181,280 @@ html, body {
   margin-bottom: 10px;
 }
 
+/* ── Undo button ── */
+.undo-btn {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 10px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.undo-btn:active { transform: scale(0.96); }
+
+/* ── Share game button & code banner ── */
+.share-game-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 0 16px 10px;
+  padding: 9px 0;
+  background: transparent;
+  border: 1.5px dashed #c8882a;
+  border-radius: 12px;
+  color: #c8882a;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.share-game-btn:active { opacity: 0.7; }
+
+.share-code-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 10px;
+  padding: 10px 14px;
+  background: #1e293b;
+  border-radius: 12px;
+  color: #fff;
+}
+.share-code-label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.share-code-value {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #f59e0b;
+  font-family: monospace;
+  flex: 1;
+}
+.share-code-copy {
+  background: #334155;
+  border: none;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Home screen additions ── */
+.join-game-form {
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: -6px;
+}
+.join-code-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: monospace;
+  color: #1e293b;
+  background: #fff;
+  box-sizing: border-box;
+}
+.join-code-input:focus {
+  outline: none;
+  border-color: #22c55e;
+}
+.history-link {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0;
+  margin-top: 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Venmo fields in setup ── */
+.player-row-wrap {
+  margin-bottom: 6px;
+}
+.venmo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding-left: 44px;
+}
+.venmo-at {
+  font-size: 15px;
+  font-weight: 700;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+.venmo-input {
+  flex: 1;
+  font-size: 14px;
+}
+.setup-row-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.btn-add-player {
+  flex: 1;
+}
+.btn-toggle-venmo {
+  padding: 10px 16px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-toggle-venmo.active {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+/* ── House rules section ── */
+.house-rules-section {
+  margin-top: 16px;
+}
+.house-rules-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.house-rules-arrow {
+  font-size: 11px;
+  color: #9ca3af;
+}
+.house-rules-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 0 2px;
+}
+.house-rules-col-header {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  padding: 0 2px 4px;
+}
+.house-rule-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.house-rule-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+.house-rule-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.house-rule-stepper button {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.house-rule-stepper span {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* ── Venmo pay button in settlement ── */
+.transaction-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.venmo-pay-btn {
+  display: block;
+  margin-top: 6px;
+  padding: 7px 14px;
+  background: #3d95ce;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.venmo-pay-btn:active { opacity: 0.85; }
+
+/* ── Share results button ── */
+.share-results-btn {
+  width: calc(100% - 32px);
+  margin: 0 16px 16px;
+  padding: 14px 0;
+  background: #1e293b;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.share-results-btn:active { opacity: 0.85; }
+
 /* ── Settlement screen ── */
 .settlement-screen {
   padding-top: 24px;
@@ -1426,12 +1700,17 @@ html, body {
 
 .transaction-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
   padding: 12px 14px;
   background: #f9fafb;
   border-radius: 12px;
   border: 1px solid #f3f4f6;
+  gap: 4px;
+}
+.transaction-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .transaction-from {

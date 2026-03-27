@@ -3,17 +3,29 @@ import AtBatControls from './AtBatControls.jsx'
 import EventLog from './EventLog.jsx'
 import CupIcon from '../CupIcon.jsx'
 import SettlementScreen from './SettlementScreen.jsx'
+import useShareSync from '../../hooks/useShareSync.js'
 
 const PLAYER_COLORS = [
   '#3b82f6', '#f97316', '#22c55e', '#7c3aed',
   '#ec4899', '#14b8a6', '#f59e0b', '#6366f1', '#ef4444',
 ]
 
-export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liveStatus }) {
+export default function GameBoard({ gameState, onAtBat, onUndo, onReset, liveConfig, liveStatus }) {
   const [showSettlement, setShowSettlement] = useState(false)
+  const [copiedCode, setCopiedCode] = useState(false)
   const { players, pot, currentPlayerIndex, events, multiplier } = gameState
   const currentPlayer = players[currentPlayerIndex]
   const isLive = !!liveConfig
+
+  const { shareCode, isSharing, startSharing } = useShareSync(gameState)
+
+  function handleCopyCode() {
+    if (!shareCode) return
+    const url = `${window.location.origin}${window.location.pathname}?join=${shareCode}`
+    navigator.clipboard?.writeText(url).catch(() => {})
+    setCopiedCode(true)
+    setTimeout(() => setCopiedCode(false), 2000)
+  }
 
   if (showSettlement) {
     return (
@@ -39,6 +51,21 @@ export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liv
           </button>
         </div>
       </div>
+
+      {/* Share code banner */}
+      {shareCode ? (
+        <div className="share-code-banner">
+          <span className="share-code-label">Join code:</span>
+          <span className="share-code-value">{shareCode}</span>
+          <button className="share-code-copy" onClick={handleCopyCode}>
+            {copiedCode ? 'Copied!' : 'Copy Link'}
+          </button>
+        </div>
+      ) : (
+        <button className="share-game-btn" onClick={startSharing}>
+          Share Game
+        </button>
+      )}
 
       {/* Live indicator bar */}
       {isLive && liveStatus && (
@@ -95,6 +122,11 @@ export default function GameBoard({ gameState, onAtBat, onReset, liveConfig, liv
             </div>
           </div>
         </div>
+        {onUndo && (
+          <button className="undo-btn" onClick={onUndo} title="Undo last at-bat">
+            ↩ Undo
+          </button>
+        )}
       </div>
 
       {/* Scoreboard */}

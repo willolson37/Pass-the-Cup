@@ -3,7 +3,7 @@ import { useMLBLive } from '../../hooks/useMLBLive.js'
 import GameBoard from '../Game/GameBoard.jsx'
 import AtBatControls from '../Game/AtBatControls.jsx'
 
-export default function LiveGameBoard({ gameState, liveConfig, onAtBat, onReset, playerNames }) {
+export default function LiveGameBoard({ gameState, liveConfig, onAtBat, onUndo, onReset, playerNames }) {
   const [showManual, setShowManual] = useState(false)
   const [retryKey, setRetryKey] = useState(0)
 
@@ -73,6 +73,7 @@ export default function LiveGameBoard({ gameState, liveConfig, onAtBat, onReset,
       <GameBoard
         gameState={gameState}
         onAtBat={onAtBat}
+        onUndo={onUndo}
         onReset={onReset}
         liveConfig={liveConfig}
         liveStatus={{
