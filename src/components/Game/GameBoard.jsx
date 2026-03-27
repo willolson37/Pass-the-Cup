@@ -17,7 +17,7 @@ export default function GameBoard({ gameState, onAtBat, onUndo, onReset, liveCon
   const currentPlayer = players[currentPlayerIndex]
   const isLive = !!liveConfig
 
-  const { shareCode, isSharing, startSharing } = useShareSync(gameState)
+  const { shareCode, isSharing, shareError, startSharing } = useShareSync(gameState)
 
   // Auto-start sharing as soon as the game board mounts
   useEffect(() => {
@@ -67,6 +67,10 @@ export default function GameBoard({ gameState, onAtBat, onUndo, onReset, liveCon
               {copiedCode ? 'Copied!' : 'Copy Link'}
             </button>
           </>
+        ) : shareError ? (
+          <button className="share-code-retry" onClick={startSharing}>
+            Retry
+          </button>
         ) : (
           <span className="share-code-generating">generating…</span>
         )}

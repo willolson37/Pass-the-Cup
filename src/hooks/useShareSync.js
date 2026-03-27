@@ -20,6 +20,7 @@ function generateCode() {
 export default function useShareSync(gameState) {
   const [shareCode, setShareCode] = useState(null)
   const [isSharing, setIsSharing] = useState(false)
+  const [shareError, setShareError] = useState(false)
   const codeRef = useRef(null)
   const isSharingRef = useRef(false)
   const syncTimeoutRef = useRef(null)
@@ -95,15 +96,18 @@ export default function useShareSync(gameState) {
 
       if (error) {
         console.error('[useShareSync] startSharing error:', error.message)
+        setShareError(true)
         return
       }
 
       codeRef.current = code
       isSharingRef.current = true
+      setShareError(false)
       setShareCode(code)
       setIsSharing(true)
     } catch (err) {
       console.error('[useShareSync] unexpected startSharing error:', err)
+      setShareError(true)
     }
   }, [gameState])
 
@@ -155,5 +159,5 @@ export default function useShareSync(gameState) {
     }
   }, [])
 
-  return { shareCode, isSharing, startSharing, stopSharing }
+  return { shareCode, isSharing, shareError, startSharing, stopSharing }
 }

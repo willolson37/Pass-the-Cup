@@ -1244,6 +1244,17 @@ html, body {
   font-style: italic;
   flex: 1;
 }
+.share-code-retry {
+  background: #ef4444;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
 .share-code-copy {
   background: #334155;
   border: none;

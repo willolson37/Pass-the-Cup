@@ -1,4 +1,5 @@
 -- Run this in your Supabase SQL editor
+-- IMPORTANT: also run the GRANT lines at the bottom
 
 CREATE TABLE IF NOT EXISTS game_sessions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -65,6 +66,12 @@ CREATE TRIGGER trg_game_sessions_updated_at
 -- DELETE FROM game_sessions
 --   WHERE is_active = FALSE
 --     AND updated_at < NOW() - INTERVAL '24 hours';
+
+-- ── Required permission grants ────────────────────────────────────────────────
+-- Supabase RLS policies alone are not enough — you must also grant table-level
+-- permissions to the anon and authenticated roles.
+GRANT SELECT, INSERT, UPDATE ON game_sessions TO anon;
+GRANT SELECT, INSERT, UPDATE ON game_sessions TO authenticated;
 --
 -- DELETE FROM game_sessions
 --   WHERE updated_at < NOW() - INTERVAL '7 days';
