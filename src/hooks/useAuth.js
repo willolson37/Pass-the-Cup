@@ -56,16 +56,8 @@ export function useAuth() {
   }, [fetchProfile])
 
   const hasLiveAccess = useCallback(() => {
-    // Owner always has free access
-    if (user?.email === 'williamrolson37@gmail.com') return true
-    if (!profile) return false
-    if (profile.plan === 'season' && profile.season_expires_at) {
-      const expires = new Date(profile.season_expires_at)
-      if (expires > new Date()) return true
-    }
-    if ((profile.game_credits || 0) > 0) return true
-    return false
-  }, [user, profile])
+    return true // Live mode free for all while in beta
+  }, [])
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
