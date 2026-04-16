@@ -181,14 +181,8 @@ export default function App() {
   }, [])
 
   const onSetupCompleteLive = useCallback((playerData, potMode, multiplier, houseRules) => {
-    if (!user) {
-      dispatch({ type: 'SETUP_COMPLETE', playerData, potMode, multiplier, houseRules, nextScreen: 'auth' })
-    } else if (hasLiveAccess()) {
-      dispatch({ type: 'SETUP_COMPLETE', playerData, potMode, multiplier, houseRules, nextScreen: 'liveSelect' })
-    } else {
-      dispatch({ type: 'SETUP_COMPLETE', playerData, potMode, multiplier, houseRules, nextScreen: 'pricing' })
-    }
-  }, [user, hasLiveAccess])
+    dispatch({ type: 'SETUP_COMPLETE', playerData, potMode, multiplier, houseRules, nextScreen: 'liveSelect' })
+  }, [])
 
   const onAtBat = useCallback((outcome, mlbContext = null) => {
     dispatch({ type: 'AT_BAT', outcome, mlbContext })
